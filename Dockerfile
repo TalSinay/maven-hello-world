@@ -2,10 +2,10 @@ FROM openjdk:11-jdk-slim
 
 WORKDIR /myapp
 
-COPY myapp/target/myapp-1.0.0.jar myapp-1.0.0.jar
-
+# Use a variable for the JAR file version (provided at build time)
+ARG JAR_FILE=myapp-1.0.0.jar
+COPY ${JAR_FILE} app.jar
 
 USER 1000
 
-CMD ["java", "-jar", "myapp-1.0.0.jar"]
-
+CMD ["java", "-jar", "app.jar"]
