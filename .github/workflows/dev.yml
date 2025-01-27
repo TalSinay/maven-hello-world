@@ -27,20 +27,20 @@ jobs:
       - name: Bump Patch Version
         id: bump-version
         run: |
-          cd myapp # Navigate to the myapp directory
+          cd myapp # Navigate to the directory containing pom.xml
           # Extract the current version dynamically from pom.xml
-          CURRENT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          CURRENT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout | grep -E "^[0-9]+\.[0-9]+\.[0-9]+$")
           echo "Current version: $CURRENT_VERSION"
-          
+
           # Increment the patch version
           PATCH=$(echo $CURRENT_VERSION | awk -F. '{print $NF}')
-          NEW_VERSION=$(echo $CURRENT_VERSION | sed "s/$PATCH/$((PATCH+1))/")
+          NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. -v PATCH=$PATCH -v OFS=. '{$NF=PATCH+1; print}')
           echo "New version: $NEW_VERSION"
 
           # Update the version in pom.xml
-          mvn versions:set -DnewVersion=$NEW_VERSION
+          mvn versions:set -DnewVersion=$NEW_VERSION -DgenerateBackupPoms=false
 
-          # Save the new version for subsequent steps
+          # Save the new version as an environment variable for subsequent steps
           echo "new-version=$NEW_VERSION" >> $GITHUB_ENV
 
       # Step 4: Compile and Package the Code
@@ -63,7 +63,7 @@ jobs:
       # Step 7: Build Docker Image
       - name: Build Docker Image
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/myapp:${{ env.new-version }} -f myapp/Dockerfile myapp
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/myapp:${{ env.new-version }} -f ./Dockerfile .
 
       # Step 8: Push Docker Image to Docker Hub
       - name: Push Docker Image
