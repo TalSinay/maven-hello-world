@@ -1,0 +1,73 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Java
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+
+      # Step 3: Increase Patch Version
+      - name: Bump Patch Version
+        id: bump-version
+        run: |
+          # Extract the current version from the pom.xml
+          CURRENT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "Current version: $CURRENT_VERSION"
+          
+          # Increment the patch version
+          PATCH=$(echo $CURRENT_VERSION | awk -F. '{print $NF}')
+          NEW_VERSION=$(echo $CURRENT_VERSION | sed "s/$PATCH/$((PATCH+1))/")
+          echo "New version: $NEW_VERSION"
+
+          # Update the version in the pom.xml
+          mvn versions:set -DnewVersion=$NEW_VERSION
+
+          # Save the new version as an output variable for the workflow
+          echo "new-version=$NEW_VERSION" >> $GITHUB_ENV
+
+      # Step 4: compile and creates the target directory
+      - name: Build and Package with Maven
+        run: mvn package
+
+      # Step 5: Upload the Artifact
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: myapp-jar
+          path: target/*.jar
+
+      # Step 6: Log in to Docker Hub
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      # Step 7: Build Docker Image
+      - name: Build Docker Image
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/myapp:${{ env.new-version }} .
+
+      # Step 8: Push Docker Image to Docker Hub
+      - name: Push Docker Image
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/myapp:${{ env.new-version }}
+
+      # Step 9: Download and Run the Docker Image
+      - name: Test Docker Image Locally
+        run: |
+          docker pull ${{ secrets.DOCKER_USERNAME }}/myapp:${{ env.new-version }}
+          docker run --rm --user 1000:1000 ${{ secrets.DOCKER_USERNAME }}/myapp:${{ env.new-version }}
+
+
+
