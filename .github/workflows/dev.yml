@@ -26,7 +26,7 @@ jobs:
         id: bump-version
         run: |
           # Extract the current version from the pom.xml
-          CURRENT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          CURRENT_VERSION=1.0.0
           echo "Current version: $CURRENT_VERSION"
           
           # Increment the patch version
