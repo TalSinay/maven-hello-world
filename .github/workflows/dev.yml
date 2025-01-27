@@ -25,8 +25,8 @@ jobs:
       - name: Bump Patch Version
         id: bump-version
         run: |
-          # Extract the current version from the pom.xml
-          CURRENT_VERSION=1.0.0
+          # Extract the current version dynamically from pom.xml
+          CURRENT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
           echo "Current version: $CURRENT_VERSION"
           
           # Increment the patch version
@@ -34,13 +34,13 @@ jobs:
           NEW_VERSION=$(echo $CURRENT_VERSION | sed "s/$PATCH/$((PATCH+1))/")
           echo "New version: $NEW_VERSION"
 
-          # Update the version in the pom.xml
+          # Update the version in pom.xml
           mvn versions:set -DnewVersion=$NEW_VERSION
 
-          # Save the new version as an output variable for the workflow
+          # Save the new version for subsequent steps
           echo "new-version=$NEW_VERSION" >> $GITHUB_ENV
 
-      # Step 4: compile and creates the target directory
+      # Step 4: Compile and Package the Code
       - name: Build and Package with Maven
         run: mvn package
 
@@ -57,7 +57,8 @@ jobs:
 
       # Step 7: Build Docker Image
       - name: Build Docker Image
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/myapp:${{ env.new-version }} .
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/myapp:${{ env.new-version }} .
 
       # Step 8: Push Docker Image to Docker Hub
       - name: Push Docker Image
@@ -68,6 +69,3 @@ jobs:
         run: |
           docker pull ${{ secrets.DOCKER_USERNAME }}/myapp:${{ env.new-version }}
           docker run --rm --user 1000:1000 ${{ secrets.DOCKER_USERNAME }}/myapp:${{ env.new-version }}
-
-
-
