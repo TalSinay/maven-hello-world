@@ -34,18 +34,18 @@ jobs:
           # Save the new version as an environment variable for subsequent steps
           echo "new-version=$NEW_VERSION" >> $GITHUB_ENV
 
-      # Step 3: Compile and Package the Code
-      - name: Build and Package with Maven
-        run: |
-          cd myapp # Navigate to the myapp directory
-          mvn package -DskipTests
+      # # Step 3: Compile and Package the Code
+      # - name: Build and Package with Maven
+      #   run: |
+      #     cd myapp # Navigate to the myapp directory
+      #     mvn package -DskipTests
 
-      # Step 4: Upload the Artifact
-      - name: Upload Build Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: myapp-jar
-          path: myapp/target/*.jar
+      # # Step 4: Upload the Artifact
+      # - name: Upload Build Artifact
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     name: myapp-jar
+      #     path: myapp/target/*.jar
 
       # Step 5: Build Docker Image
       - name: Build Docker Image
@@ -53,7 +53,7 @@ jobs:
           docker build \
             --build-arg JAR_FILE=myapp-${{ env.new-version }}.jar \
             -t ${{ secrets.DOCKER_USERNAME }}/myapp:${{ env.new-version }} \
-            -f ./Dockerfile myapp/target
+            -f ./Dockerfile .
 
       # Step 6: Log in to Docker Hub
       - name: Log in to Docker Hub
@@ -64,7 +64,7 @@ jobs:
         run: docker push ${{ secrets.DOCKER_USERNAME }}/myapp:${{ env.new-version }}
 
       # Step 8: Download and Run the Docker Image
-      - name: Test Docker Image Locally
+      - name: Run the Docker Image
         run: |
           docker pull ${{ secrets.DOCKER_USERNAME }}/myapp:${{ env.new-version }}
           docker run --rm --user 1000:1000 ${{ secrets.DOCKER_USERNAME }}/myapp:${{ env.new-version }}
