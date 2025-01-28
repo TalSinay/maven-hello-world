@@ -5,6 +5,6 @@ public class App
 {
     public static void main( String[] args )
     {
-        System.out.println( "Hello World! this is Tal Sinay." );
+        System.out.println( "Hello World! This Is Tal Sinay." );
     }
 }
