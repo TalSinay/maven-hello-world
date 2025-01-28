@@ -6,8 +6,8 @@
 
   <groupId>com.myapp</groupId>
   <artifactId>myapp</artifactId>
-
-  <version>1.0.2</version>
+  
+  <version>1.0.0</version>
 
 
   <name>myapp</name>

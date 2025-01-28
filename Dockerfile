@@ -1,6 +1,6 @@
 FROM openjdk:11-jdk-slim
 
-ARG JAR_FILE=myapp-1.0.0.jar
+ARG JAR_FILE=myapp/target/myapp-1.0.0.jar
 
 WORKDIR /myapp
 

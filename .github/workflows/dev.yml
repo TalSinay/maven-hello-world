@@ -78,11 +78,11 @@ jobs:
           docker pull ${{ secrets.DOCKER_USERNAME }}/myapp:${{ env.new-version }}
           docker run --rm --user 1000:1000 ${{ secrets.DOCKER_USERNAME }}/myapp:${{ env.new-version }}
 
-      # Step 10: Commit Updated Files
-      - name: Commit Updated pom.xml
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add myapp/pom.xml
-          git commit -m "Bump version to ${{ env.new-version }} [skip ci]"
-          git push origin dev
+    #   # Step 10: Commit Updated Files
+    #   - name: Commit Updated pom.xml
+    #     run: |
+    #       git config user.name "github-actions[bot]"
+    #       git config user.email "github-actions[bot]@users.noreply.github.com"
+    #       git add myapp/pom.xml
+    #       git commit -m "Bump version to ${{ env.new-version }} [skip ci]"
+    #       git push origin dev
